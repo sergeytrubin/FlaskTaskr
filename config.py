@@ -3,8 +3,6 @@ SECRET_KEY = os.urandom(32)
 # Grabs the folder where the script runs.
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-USERNAME = 'admin'
-PASSWORD = 'admin'
 WTF_CSRF_ENABLED = True
 
 # Enable debug mode.
