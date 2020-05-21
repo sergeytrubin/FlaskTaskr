@@ -1,14 +1,13 @@
 #-----------------------------------------------------------#
 #                       Imports                             #
 #-----------------------------------------------------------#
-
 from flask import Flask, render_template, request, session, \
     flash, redirect, url_for, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from functools import wraps
 from forms import AddTaskForm, RegisterForm, LoginForm
-
+import datetime
 #-----------------------------------------------------------#
 #                       Config                              #
 #-----------------------------------------------------------#
@@ -92,32 +91,28 @@ def tasks():
         )
 
 # Add new tasks
-@app.route('/add/', methods=['POST'])
+@app.route('/add/', methods=['GET', 'POST'])
 @login_required
 def new_task():
-    error = False
     form = AddTaskForm(request.form)
     if request.method == 'POST':
-        if form.validate_on_submit:
-            try:
-                new_task = Task(
-                    name=request.form['name'],
-                    due_date=request.form['due_date'],
-                    priority=request.form['priority'],
-                    status=1
-                )
-                db.session.add(new_task)
-                db.session.commit()
-            except:
-                error = True
-                db.session.rollback()
-            finally:
-                db.session.close()
-                flash("New entry was succesfully posted!")
-    if not error:
-        return redirect(url_for('tasks'))
-    else:
-        abort(500)
+        if form.validate_on_submit():
+            new_task = Task(
+                form.name.data,
+                form.due_date.data,
+                form.priority.data,
+                datetime.datetime.utcnow(),
+                '1',
+                '1'
+            )
+            db.session.add(new_task)
+            db.session.commit()
+            flash('New entry was successfully posted. Thanks.')
+            return redirect(url_for('tasks'))
+        else:
+            flash('All fields are required.')
+            return redirect(url_for('tasks'))
+    return render_template('tasks.html', form=form)
 
 
 # Mark tasks as complete
